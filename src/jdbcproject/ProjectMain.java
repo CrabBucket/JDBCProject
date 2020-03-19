@@ -43,7 +43,8 @@ public class ProjectMain {
 	            con = DriverManager.getConnection("jdbc:derby://localhost:1527/CECS323Projekt;username =\"\";password=\"\";");
 	            //System.out.println("test");
 	            //insertWritingGroup(in,con);
-	            System.out.println(DBLibrary.viewWritingGroups(con));
+//	            System.out.println(DBLibrary.viewWritingGroups(con));
+	            System.out.println(DBLibrary.viewWritingGroupData("Rito gaems", con));
 	            
 	            con.close();
 	        }catch(SQLException sqle) {

@@ -9,6 +9,24 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class DBLibrary {
+	public static ArrayList<Triple<String,String,Integer>>getMetaTriples(ResultSet set){
+		ResultSetMetaData meta;
+		ArrayList<Triple<String,String,Integer>> columnmetadata = new ArrayList<Triple<String,String,Integer>>();
+		try {
+			meta = set.getMetaData();
+			int columnCount = meta.getColumnCount();
+			for(int i = 0; i < columnCount;i++) {
+				columnmetadata.add(new Triple<String,String,Integer>(meta.getColumnLabel(i+1),meta.getColumnTypeName(i+1),meta.getPrecision(i+1)));
+			}
+			
+		} catch (SQLException e) {
+			columnmetadata.add(new Triple<String,String,Integer>("Error making triple","Error Making Triple",0));
+			e.printStackTrace();
+			
+		}
+		return columnmetadata;
+
+	}
 	/**
 	 * Result set to string.
 	 *
@@ -16,14 +34,9 @@ public class DBLibrary {
 	 * @return the string **/
 	public static String resultSetToString(ResultSet set) {
 		try {
-			ResultSetMetaData meta = set.getMetaData();
 			
-			int columnCount = meta.getColumnCount();
-			ArrayList<Triple<String,String,Integer>> columnmetadata = new ArrayList<Triple<String,String,Integer>>();
-			for(int i = 0; i < columnCount;i++) {
-				columnmetadata.add(new Triple<String,String,Integer>(meta.getColumnLabel(i+1),meta.getColumnTypeName(i+1),meta.getPrecision(i+1)));
-			}
-
+			ArrayList<Triple<String,String,Integer>> columnmetadata = getMetaTriples(set);
+			int columnCount = columnmetadata.size();
 			String preFormat = "";
 			Object printfargs[] = new Object[columnCount];
 			int count = 0;
@@ -95,6 +108,23 @@ public class DBLibrary {
 		return toRet;
 	}
 	
+	public static String viewWritingGroupData (String group,Connection con) {
+		PreparedStatement prep;
+		String toRet;
+		try {
+			prep = con.prepareStatement("SELECT GROUPNAME,HEADWRITER,YEARFORMED,SUBJECT FROM WritingGroup "+
+										"WHERE GROUPNAME=?");
+			prep.setString(1,group);
+			
+			toRet= resultSetToString(prep.executeQuery());
+		}catch(SQLException e) {
+			e.printStackTrace();
+			toRet = "Error in viewWritingGroupData";
+		}
+		return toRet;
+		
+	}
+	
 	/**
 	 * Accept string input for insertion into a prepared statement to insert into a table.
 	 *
@@ -138,14 +168,17 @@ public class DBLibrary {
 		
 		//Turns the string into an sql statement this can throw errors if the string is malformed
 		PreparedStatement prepstate = con.prepareStatement(statement);
-		//Standard Input/Ouput stuff to get user input for the next couple of lines
-		//The setString / setInt / setDataType has the format setData(index, data of that type)
-		//It will set the question marks in our statement to their actual values whatever they may be.
-		//We repeat this 4 times for the 4 fields
-		acceptStringInput(100, 1, "Group", prepstate);
 		
 		
-		acceptStringInput(20,2,"head writer",prepstate);
+		PreparedStatement tempstate = con.prepareStatement("SELECT groupName,headWriter,yearFormed,subect from WritingGroup");
+		ArrayList<Triple<String,String,Integer>> metadata = getMetaTriples(tempstate.executeQuery());
+		//To insert the data into our prepstate I made function that takes the max length of the string input
+		//The index to enter, the name to call it for the user, and the PreparedStatement
+		//We get the max allowed size from the metadata of the table.
+		acceptStringInput(metadata.get(0).z, 1, "Group", prepstate);
+		
+		
+		acceptStringInput(metadata.get(1).z,2,"head writer",prepstate);
 		int yearsFormed;
 		//Keep repeating obviously
 		while(true) {
@@ -165,7 +198,7 @@ public class DBLibrary {
 			}
 		}
 		prepstate.setInt(3, yearsFormed);
-		acceptStringInput(20,4,"subject",prepstate);
+		acceptStringInput(metadata.get(3).z,4,"subject",prepstate);
 		//We make sure to execute the statment at the end.
 		//This can error if we have problems with our data but it likely would have happened earlier,
 		//Will error if uniqueness constraints are broken.
