@@ -9,6 +9,13 @@ import java.sql.*;
  * The Class ProjectMain.
  */
 public class ProjectMain {
+	
+	/**
+	 * Result set to string.
+	 *
+	 * @param set the set
+	 * @return the string
+	 */
 	private static String resultSetToString(ResultSet set) {
 		try {
 			ResultSetMetaData meta = set.getMetaData();
