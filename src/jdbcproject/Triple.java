@@ -9,5 +9,8 @@ public class Triple<X,Y,Z> {
 		this.y = y;
 		this.z = z;
 	}
-
+	@Override
+	public String toString() {
+		return x.toString() + " " + y.toString();
+	}
 }

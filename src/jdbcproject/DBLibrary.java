@@ -9,6 +9,66 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class DBLibrary {
+	public static int rowsInSet(ResultSet set) {
+		
+		
+		 int rows = 0;
+		    try {
+		        set.last();
+		        rows = set.getRow();
+		        set.beforeFirst();
+		        
+		        
+		    } 
+		    catch(Exception ex)  {
+		    	ex.printStackTrace();
+		        return 0;
+		    }
+		    return rows ;
+	}
+	
+	/**
+	 * Exists in column.
+	 *
+	 * @param con the con
+	 * @param table the table
+	 * @param columnName the column name
+	 * @param data the data
+	 * @return true, if successful
+	 * @throws SQLException the SQL exception
+	 */
+	public static boolean existsInColumn(Connection con, String table, String columnName, String data) throws SQLException {
+		PreparedStatement prep;
+		try {
+			String sql = "SELECT "+columnName+" FROM "+table+" WHERE "+columnName+"='"+data+"'";
+			//Note, you cannot use ? for the select or for the table name or for both sides of the equals. 
+			//I guess that means you should only use for the last check.
+			String sql_ = "SELECT "+columnName+" FROM " + table +" WHERE "+columnName+"=?";
+			prep = con.prepareStatement(sql_,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+			prep.setString(1,data);
+		}catch(SQLException e) {
+			System.out.println("Used invalid sql syntax in either the columnName table or data.");
+			e.printStackTrace();
+			throw new SQLException(e);
+		}
+		ResultSet results;
+		try {
+			results = prep.executeQuery();
+		}catch(SQLException e) {
+			System.out.println("Couldn't find table or column name.");
+			throw new SQLException(e);
+		}
+		if(rowsInSet(results)<1) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+	public static void insertNewPublisher(Connection con) {
+		
+	}
+	
+	
 	public static ArrayList<Triple<String,String,Integer>>getMetaTriples(ResultSet set){
 		ResultSetMetaData meta;
 		ArrayList<Triple<String,String,Integer>> columnmetadata = new ArrayList<Triple<String,String,Integer>>();
@@ -135,12 +195,12 @@ public class DBLibrary {
 	 * @return the prepared statement with data inserted into the correct index
 	 * @throws SQLException the SQL exception shouldn't ever be thrown if I handled the case correctly.
 	 */
-	public static PreparedStatement acceptStringInput(int maxLen, int index,String category,PreparedStatement prep) throws SQLException {
-		Scanner in = new Scanner(System.in);
+	public static String acceptStringInput(int maxLen, int index,String category,PreparedStatement prep, Scanner in) throws SQLException {
+		String datain;
 		while(true) {
 			System.out.println("Please enter the "+ category +" name:");
 			
-			String datain = in.nextLine();
+			datain = in.nextLine();
 			if(datain.length()>100) {
 				System.out.println("Please enter a " + category + " name less than" + index + "characters.");
 				continue;
@@ -148,10 +208,11 @@ public class DBLibrary {
 			prep.setString(index,datain);
 			break;
 		}
-		in.close();
-		return prep;
+		
+		return datain;
 		
 	}
+	
 	
 	/**
 	 * Insert writing group.
@@ -161,7 +222,7 @@ public class DBLibrary {
 	 * @throws SQLException the SQL exception should only be thrown if uniquesness constraint is violated.
 	 */
 	// Inserting into the table using a prepared statement
-	private static void insertWritingGroup(Scanner in,Connection con) throws SQLException{
+	public static void insertWritingGroup(Scanner in,Connection con) throws SQLException{
 		
 		//This is the skeleton of our statement the ?'s are what we are using as a placeholder to put variables into it so sql can optimize.
 		String statement = "INSERT INTO WritingGroup (groupName,headWriter,yearFormed,subject) VALUES (?,?,?,?)";
@@ -170,15 +231,47 @@ public class DBLibrary {
 		PreparedStatement prepstate = con.prepareStatement(statement);
 		
 		
-		PreparedStatement tempstate = con.prepareStatement("SELECT groupName,headWriter,yearFormed,subect from WritingGroup");
+		PreparedStatement tempstate = con.prepareStatement("SELECT groupName,headWriter,yearFormed,subject from WritingGroup");
 		ArrayList<Triple<String,String,Integer>> metadata = getMetaTriples(tempstate.executeQuery());
+		class inputHelper {
+			public inputHelper(int index, String subject) {
+				while(true) {
+					try {
+						acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
+						break;
+					} catch(SQLException e) {
+						System.out.println("Used wrong index");
+						continue;
+					}
+				}
+			}
+			public inputHelper(int index, String subject,boolean unique) {
+				
+				while(true) {
+					try {
+						String data = acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
+						if(unique) {
+							if(!existsInColumn(con, "WritingGroup", "GroupName",data)) {
+								System.out.println("Group Already in the System.");
+								continue;
+							}
+							
+						}
+						break;
+					} catch(SQLException e) {
+						System.out.println("Used wrong index");
+						continue;
+					}
+				}
+			}
+		}
 		//To insert the data into our prepstate I made function that takes the max length of the string input
 		//The index to enter, the name to call it for the user, and the PreparedStatement
 		//We get the max allowed size from the metadata of the table.
-		acceptStringInput(metadata.get(0).z, 1, "Group", prepstate);
+		new inputHelper(1,"group",true);
 		
 		
-		acceptStringInput(metadata.get(1).z,2,"head writer",prepstate);
+		new inputHelper(2, "Head Writer");
 		int yearsFormed;
 		//Keep repeating obviously
 		while(true) {
@@ -198,7 +291,7 @@ public class DBLibrary {
 			}
 		}
 		prepstate.setInt(3, yearsFormed);
-		acceptStringInput(metadata.get(3).z,4,"subject",prepstate);
+		new inputHelper(4,"subject");
 		//We make sure to execute the statment at the end.
 		//This can error if we have problems with our data but it likely would have happened earlier,
 		//Will error if uniqueness constraints are broken.
