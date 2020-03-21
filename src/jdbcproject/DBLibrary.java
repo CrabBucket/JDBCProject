@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class DBLibrary {
+	
 	public static int rowsInSet(ResultSet set) {
 		
 		
@@ -58,16 +59,98 @@ public class DBLibrary {
 			System.out.println("Couldn't find table or column name.");
 			throw new SQLException(e);
 		}
-		if(rowsInSet(results)<1) {
+		if(rowsInSet(results)>0) {
 			return true;
 		}else {
 			return false;
 		}
 	}
-	public static void insertNewPublisher(Connection con) {
+	public static String insertNewPublisher(Connection con,Scanner in) {
+		
+		String SQL = "INSERT INTO Publishers (PublisherName,PublisherAddress, PublisherPhone, PublisherEmail) VALUES (?,?,?,?)";
+		try {
+			PreparedStatement prep = con.prepareStatement(SQL,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement tempstate = con.prepareStatement("SELECT PublisherName,PublisherAddress, PublisherPhone, PublisherEmail from Publishers");
+			ArrayList<Triple<String,String,Integer>> metadata = getMetaTriples(tempstate.executeQuery());
+			//inputHelper is basically a wrapper for acceptStringInput that handles uniqueness and keeps the function calls simple.
+			
+			class inputHelper {
+				public String pk;
+				public inputHelper(int index, String subject) {
+					while(true) {
+						try {
+							this.pk =acceptStringInput(metadata.get(index-1).z,index, subject, prep,in);
+							
+							break;
+						} catch(SQLException e) {
+							System.out.println("Used wrong index");
+							continue;
+						}
+					}
+				}
+				public inputHelper(int index, String subject,boolean unique) {
+					
+					while(true) {
+						try {
+							String data = acceptStringInput(metadata.get(index-1).z,index, subject, prep,in);
+							if(unique) {
+								if(existsInColumn(con, "Publishers", "PublisherName",data)) {
+									System.out.println("Publisher Already in the System.");
+									continue;
+								}
+								
+							}
+							this.pk = data;
+							break;
+						} catch(SQLException e) {
+							System.out.println("Used wrong index");
+							continue;
+						}
+					}
+				}
+			}
+			
+			String temp = (new inputHelper(1,"Publisher Name",true)).pk;
+			
+			new inputHelper(2,"Publisher Address");
+			
+			new inputHelper(3,"Publisher Phone Number");
+			
+			new inputHelper(4, "Publisher Email");
+			
+			prep.execute();
+			
+			return temp;
+			
+		}catch(SQLException e) {
+			System.out.println("Table name or columns have likely changed");
+			e.printStackTrace();
+		}
+		return "ERROR";
 		
 	}
-	
+	public static void usurpOldPublisher(Connection con, Scanner in) throws SQLException {
+		String updateSQL = "UPDATE Books SET PublisherName = ? WHERE PublisherName = ?";
+		PreparedStatement prep = con.prepareStatement(updateSQL);
+		PreparedStatement tempstate = con.prepareStatement("SELECT PublisherName from Books");
+		ArrayList<Triple<String,String,Integer>> metadata = getMetaTriples(tempstate.executeQuery());
+		String newPub = insertNewPublisher(con, in);
+		String oldPub = null;
+		while(true) {
+			System.out.println("What is the name of the publisher you are trying to replace?");
+			oldPub = in.nextLine().trim();
+			if(existsInColumn(con, "Publishers", "PublisherName", oldPub)) {
+				break;
+			}else {
+				System.out.println("No such publisher exists please enter one that does");
+				continue;
+			}
+		}
+		prep.setString(1, newPub);
+		prep.setString(2, oldPub);
+		System.out.println(prep.executeUpdate()+" Records were changed");
+		
+	}
 	
 	public static ArrayList<Triple<String,String,Integer>>getMetaTriples(ResultSet set){
 		ResultSetMetaData meta;
@@ -226,76 +309,80 @@ public class DBLibrary {
 		
 		//This is the skeleton of our statement the ?'s are what we are using as a placeholder to put variables into it so sql can optimize.
 		String statement = "INSERT INTO WritingGroup (groupName,headWriter,yearFormed,subject) VALUES (?,?,?,?)";
-		
+		try {
 		//Turns the string into an sql statement this can throw errors if the string is malformed
-		PreparedStatement prepstate = con.prepareStatement(statement);
-		
-		
-		PreparedStatement tempstate = con.prepareStatement("SELECT groupName,headWriter,yearFormed,subject from WritingGroup");
-		ArrayList<Triple<String,String,Integer>> metadata = getMetaTriples(tempstate.executeQuery());
-		class inputHelper {
-			public inputHelper(int index, String subject) {
-				while(true) {
-					try {
-						acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
-						break;
-					} catch(SQLException e) {
-						System.out.println("Used wrong index");
-						continue;
-					}
-				}
-			}
-			public inputHelper(int index, String subject,boolean unique) {
-				
-				while(true) {
-					try {
-						String data = acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
-						if(unique) {
-							if(!existsInColumn(con, "WritingGroup", "GroupName",data)) {
-								System.out.println("Group Already in the System.");
-								continue;
-							}
-							
+			PreparedStatement prepstate = con.prepareStatement(statement);
+			
+			
+			PreparedStatement tempstate = con.prepareStatement("SELECT groupName,headWriter,yearFormed,subject from WritingGroup");
+			ArrayList<Triple<String,String,Integer>> metadata = getMetaTriples(tempstate.executeQuery());
+			class inputHelper {
+				public inputHelper(int index, String subject) {
+					while(true) {
+						try {
+							acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
+							break;
+						} catch(SQLException e) {
+							System.out.println("Used wrong index");
+							continue;
 						}
-						break;
-					} catch(SQLException e) {
-						System.out.println("Used wrong index");
-						continue;
+					}
+				}
+				public inputHelper(int index, String subject,boolean unique) {
+					
+					while(true) {
+						try {
+							String data = acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
+							if(unique) {
+								if(existsInColumn(con, "WritingGroup", "GroupName",data)) {
+									System.out.println("Group Already in the System.");
+									continue;
+								}
+								
+							}
+							break;
+						} catch(SQLException e) {
+							System.out.println("Used wrong index");
+							continue;
+						}
 					}
 				}
 			}
-		}
-		//To insert the data into our prepstate I made function that takes the max length of the string input
-		//The index to enter, the name to call it for the user, and the PreparedStatement
-		//We get the max allowed size from the metadata of the table.
-		new inputHelper(1,"group",true);
-		
-		
-		new inputHelper(2, "Head Writer");
-		int yearsFormed;
-		//Keep repeating obviously
-		while(true) {
-			try {
-				System.out.println("Please enter the year formed.");
-				//If the next line throws an error we don't get to the break and we repeat the loop through the catch
-				//If the parse goes through fine we break the loop.
-				yearsFormed = Integer.parseInt(in.nextLine());
-				if(yearsFormed>2100 || yearsFormed < 1800) {
-					System.out.println("Please enter a year from 1800 to 2100");
-					continue;
+			//To insert the data into our prepstate I made function that takes the max length of the string input
+			//The index to enter, the name to call it for the user, and the PreparedStatement
+			//We get the max allowed size from the metadata of the table.
+			new inputHelper(1,"group",true);
+			
+			
+			new inputHelper(2, "Head Writer");
+			int yearsFormed;
+			//Keep repeating obviously
+			while(true) {
+				try {
+					System.out.println("Please enter the year formed.");
+					//If the next line throws an error we don't get to the break and we repeat the loop through the catch
+					//If the parse goes through fine we break the loop.
+					yearsFormed = Integer.parseInt(in.nextLine());
+					if(yearsFormed>2100 || yearsFormed < 1800) {
+						System.out.println("Please enter a year from 1800 to 2100");
+						continue;
+					}
+					break;
+					
+				}catch (NumberFormatException nfe) {
+					System.out.println("You entered a non valid integer.");
 				}
-				break;
-				
-			}catch (NumberFormatException nfe) {
-				System.out.println("You entered a non valid integer.");
 			}
+			prepstate.setInt(3, yearsFormed);
+			new inputHelper(4,"subject");
+			//We make sure to execute the statment at the end.
+			//This can error if we have problems with our data but it likely would have happened earlier,
+			//Will error if uniqueness constraints are broken.
+			prepstate.executeUpdate();
+		}catch(SQLException e) {
+			System.out.println("The database column or table names have probably changed");
+			e.printStackTrace();
+			
 		}
-		prepstate.setInt(3, yearsFormed);
-		new inputHelper(4,"subject");
-		//We make sure to execute the statment at the end.
-		//This can error if we have problems with our data but it likely would have happened earlier,
-		//Will error if uniqueness constraints are broken.
-		prepstate.executeUpdate();
-		
 	}
 }

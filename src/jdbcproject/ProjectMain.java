@@ -46,7 +46,9 @@ public class ProjectMain {
 //	            System.out.println(DBLibrary.viewWritingGroups(con));
 	            //System.out.println(DBLibrary.viewWritingGroupData("Rito gaems", con));
 	            //System.out.println(DBLibrary.existsInColumn(con, "WritingGroup", "GroupName", "Rito gaems"));
-	            DBLibrary.insertWritingGroup(in, con);
+	            //DBLibrary.insertWritingGroup(in, con);
+//	            DBLibrary.insertNewPublisher(con,in);
+	            DBLibrary.usurpOldPublisher(con, in);
 	            
 	            con.close();
 	        }catch(SQLException sqle) {
