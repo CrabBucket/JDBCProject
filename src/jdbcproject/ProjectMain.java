@@ -1,6 +1,7 @@
 package jdbcproject;
 
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.Scanner;
 import java.sql.*;
 
@@ -167,11 +168,20 @@ public class ProjectMain {
 				String dbName = params[0].trim();
 				String user = params[1].trim();
 				String password = params[2].trim();
-				con = DriverManager.getConnection("jdbc:derby://localhost:1527/" + dbName + ";username =\"+ user " + user + "\";password=\""+ password + "\";");
+				String url = "jdbc:derby://localhost:1527/"+dbName;
+				Properties userpass = new Properties();
+				if(!(user.length()==0)) {
+					userpass.put("user", user);
+				}
+				if(!(password.length()==0)) {
+					userpass.put("password", password);
+				}
+				con = DriverManager.getConnection(url,userpass);
 				break;
 
 			}catch(SQLException e) {
 				System.out.println("Invalid credentials please try again.");
+				e.printStackTrace();
 				continue;
 			}
 		}

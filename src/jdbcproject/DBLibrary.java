@@ -305,7 +305,14 @@ public class DBLibrary {
 			while(true) {
 				try {
 					String data2 = acceptStringInput(metadata.get(1).z,2, "Book Title", prep,in);
-					String data1 = acceptStringInput(metadata.get(0).z,1, "Group Name", prep,in);
+					String data1;
+					while(true) {
+						data1 = acceptStringInput(metadata.get(0).z,1, "Group Name", prep,in);
+						if(existsInColumn(con,"Books","GroupName",data1)) {
+							break;
+						}
+					}
+					 
 					
 					if(existsInColumnPair(con, "Books", "groupName","bookTitle",data1,data2)) {
 						System.out.println("Book is already in the system.");
@@ -320,7 +327,7 @@ public class DBLibrary {
 			while(true) {
 				try {
 					String data = acceptStringInput(metadata.get(2).z,3,"Publisher Name",prep,in);
-					if(existsInColumn(con,"Publishers","publisherName",data)) {
+					if(!existsInColumn(con,"Publishers","publisherName",data)) {
 						System.out.println("Publisher doesn't exist please try again");
 						continue;
 					}
