@@ -7,5 +7,7 @@
 	<classpathentry kind="lib" path="C:/Users/Kathy/Desktop/db-derby-10.14.2.0-bin/lib/derbynet.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Kathy/Desktop/db-derby-10.14.2.0-bin/lib/derbyrun.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Kathy/Desktop/db-derby-10.14.2.0-bin/lib/derbytools.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
+	<classpathentry kind="lib" path="C:/Users/Kathy/Desktop/db-derby-10.14.2.0-bin/lib/derbyoptionaltools.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
