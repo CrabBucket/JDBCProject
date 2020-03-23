@@ -8,9 +8,21 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DBLibrary.
+ */
 public class DBLibrary {
 	
+	/** The Constant scrollable. */
 	private final static int scrollable[] = {ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY}; 
+	
+	/**
+	 * Rows in ResultSet
+	 *
+	 * @param set the set
+	 * @return the number of rows in result set.
+	 */
 	public static int rowsInSet(ResultSet set) {
 		
 		
@@ -30,13 +42,13 @@ public class DBLibrary {
 	}
 	
 	/**
-	 * Exists in column.
+	 * Checks if there is a record that exists that matches the data in the column.
 	 *
-	 * @param con the con
+	 * @param con the DB connection
 	 * @param table the table
 	 * @param columnName the column name
 	 * @param data the data
-	 * @return true, if successful
+	 * @return true, if there exists one or more records that much the data in the specified column
 	 * @throws SQLException the SQL exception
 	 */
 	public static boolean existsInColumn(Connection con, String table, String columnName, String data) throws SQLException {
@@ -67,6 +79,18 @@ public class DBLibrary {
 		}
 	}
 	
+	/**
+	 * Checks if there is a record that exists that matches both the columns to both the string accordingly
+	 *
+	 * @param con the DB connection
+	 * @param table the table
+	 * @param column1 First column to be matched
+	 * @param column2 Second Column to be mached.
+	 * @param data1 the String to match to column1
+	 * @param data2 the String to match to column2
+	 * @return true, if at least single record exists false otherwise.
+	 * @throws SQLException, since we use strings to take in column and table names data we can do some pretty powerful things however it does throw errors.
+	 */
 	public static boolean existsInColumnPair(Connection con, String table, String column1,String column2, String data1, String data2) throws SQLException {
 		PreparedStatement prep;
 		try {
@@ -99,7 +123,7 @@ public class DBLibrary {
 	
 	
 	/**
-	 * Gets the meta triples, each triple contains (Column Name, Column Type, Column Size) with type String,String,Int
+	 * Gets the meta triples, each triple contains (Column Name, Column Type, Column Size) with type String,String,Int.
 	 *
 	 * @param set the ResultSet we want to get meta data on.
 	 * @return the meta triples
@@ -123,6 +147,13 @@ public class DBLibrary {
 
 	}
 	
+	/**
+	 * Multiplies a string O(num)
+	 *
+	 * @param str the string
+	 * @param num the number multiplied
+	 * @return the multiplied string
+	 */
 	private static String strMult(String str, int num) {
 		String ret = str;
 		for(int i = 0; i<num;i++) {
@@ -133,8 +164,9 @@ public class DBLibrary {
 	/**
 	 * Result set to string.
 	 *
-	 * @param set the set
-	 * @return the string **/
+	 * @param set the ResultSet
+	 * @return the string represention of the ResultSet
+	 */
 	public static String resultSetToString(ResultSet set) {
 		try {
 			
@@ -201,6 +233,12 @@ public class DBLibrary {
 		return "Error in result set to string";
 	}
 	
+	/**
+	 * View writing groups.
+	 *
+	 * @param in the Input stream
+	 * @param con the DB Connection
+	 */
 	public static String viewWritingGroups(Connection con){
 		PreparedStatement prep;
 		String toRet;
@@ -222,6 +260,13 @@ public class DBLibrary {
 		return toRet;
 	}
 	
+	/**
+	 * View writing group data.
+	 *
+	 * @param in the Input stream
+	 * @param con the DB Connection
+	 * @return the string represention of writing group data.
+	 */
 	public static String viewWritingGroupData (Scanner in,Connection con) {
 		PreparedStatement prep;
 		String toRet;
@@ -244,6 +289,13 @@ public class DBLibrary {
 		return toRet;
 		
 	}
+	
+	/**
+	 * Insert book into DB.
+	 *
+	 * @param in the Input stream
+	 * @param con the DB Connection
+	 */
 	public static void insertBook (Connection con,Scanner in) {
 		PreparedStatement prep;
 		try{
@@ -268,7 +320,7 @@ public class DBLibrary {
 			while(true) {
 				try {
 					String data = acceptStringInput(metadata.get(2).z,3,"Publisher Name",prep,in);
-					if(!existsInColumn(con,"Publishers","publisherName",data)) {
+					if(existsInColumn(con,"Publishers","publisherName",data)) {
 						System.out.println("Publisher doesn't exist please try again");
 						continue;
 					}
@@ -328,10 +380,10 @@ public class DBLibrary {
 	}
 	
 	/**
-	 * Removes the book.
+	 * Removes specified book.
 	 *
-	 * @param con the con
-	 * @param in the in
+	 * @param in the Input stream
+	 * @param con the DB Connection
 	 */
 	public static void removeBook(Connection con, Scanner in) {
 		PreparedStatement checkRows;
@@ -360,7 +412,7 @@ public class DBLibrary {
 						prepWGrp.executeUpdate();
 						break;
 					}else {
-						System.out.println("Group name does not exist plase try again");
+						System.out.println("Group name does not exist please try again");
 						continue;
 					}
 				}
@@ -380,6 +432,13 @@ public class DBLibrary {
 		
 		
 	}
+	
+	/**
+	 * View publishers.
+	 *
+	 * @param in the Input stream
+	 * @param con the DB Connection
+	 */
 	public static String viewPublishers(Connection con){
 		PreparedStatement prep;
 		String toRet;
@@ -401,6 +460,13 @@ public class DBLibrary {
 		return toRet;
 	}
 	
+	/**
+	 * View publishers data.
+	 *
+	 * @param in the Input stream
+	 * @param con the DB Connection
+	 * @return the Publisher Data as a string
+	 */
 	public static String viewPublishersData (Scanner in,Connection con) {
 		PreparedStatement prep;
 		String toRet;
@@ -425,11 +491,17 @@ public class DBLibrary {
 	}
 	
 	
+	/**
+	 * View all book titles.
+	 *
+	 * @param con the DB connection
+	 * @return the string representation of the all the book titles in the database
+	 */
 	public static String viewBooks(Connection con){
 		PreparedStatement prep;
 		String toRet;
 		try {
-			prep = con.prepareStatement("SELECT BOOKTITLE FROM Books ORDER BY BookTitle");
+			prep = con.prepareStatement("SELECT BOOKTITLE,GROUPNAME,PUBLISHERNAME FROM Books ORDER BY BookTitle");
 			prep.execute();
 			ResultSet temp = prep.getResultSet();
 			
@@ -446,6 +518,47 @@ public class DBLibrary {
 		return toRet;
 	}
 	
+	/**
+	 * Accept string input for insertion into a prepared statement to insert into a table.
+	 *
+	 * @param maxLen the max length the database will accept
+	 * @param index the index of the data in the prepared statement
+	 * @param category the name to display when asking for data to the user
+	 * @param prep the prep the prepared statement you want to insert data into
+	 * @param in the in
+	 * @return the prepared statement with data inserted into the correct index
+	 * @throws SQLException the SQL exception shouldn't ever be thrown if I handled the case correctly.
+	 */
+	public static String acceptStringInput(int maxLen, int index,String category,PreparedStatement prep, Scanner in) {
+		String datain;
+		while(true) {
+			System.out.println("Please enter the "+ category +":");
+			
+			datain = in.nextLine();
+			if(datain.length()>maxLen) {
+				System.out.println("Please enter a " + category + " that is less than " + maxLen + " characters.");
+				continue;
+			}
+			try {
+				prep.setString(index,datain);
+			} catch (SQLException e) {
+				System.out.println("Error setting "+category);
+				e.printStackTrace();
+			}
+			break;
+		}
+		
+		return datain;
+		
+	}
+
+	/**
+	 * View specific book data
+	 *
+	 * @param in the input stream we are reading from
+	 * @param con the DB connection
+	 * @return The Book Data as a string
+	 */
 	public static String viewBooksData (Scanner in,Connection con) {
 		PreparedStatement checkRows;
 		PreparedStatement prepNoGrp;
@@ -498,40 +611,10 @@ public class DBLibrary {
 	
 	
 	/**
-	 * Accept string input for insertion into a prepared statement to insert into a table.
+	 * Insert writing group into database.
 	 *
-	 * @param maxLen the max length the database will accept
-	 * @param index the index of the data in the prepared statement
-	 * @param category the name to display when asking for data to the user
-	 * @param prep the prep the prepared statement you want to insert data into
-	 * @return the prepared statement with data inserted into the correct index
-	 * @throws SQLException the SQL exception shouldn't ever be thrown if I handled the case correctly.
-	 */
-	public static String acceptStringInput(int maxLen, int index,String category,PreparedStatement prep, Scanner in) throws SQLException {
-		String datain;
-		while(true) {
-			System.out.println("Please enter the "+ category +" name:");
-			
-			datain = in.nextLine();
-			if(datain.length()>maxLen) {
-				System.out.println("Please enter a " + category + " name less than " + maxLen + " characters.");
-				continue;
-			}
-			prep.setString(index,datain);
-			break;
-		}
-		
-		return datain;
-		
-	}
-	
-	
-	/**
-	 * Insert writing group.
-	 *
-	 * @param in the in
-	 * @param con the con
-	 * @throws SQLException the SQL exception should only be thrown if uniquesness constraint is violated.
+	 * @param in the input stream we are taking user input from
+	 * @param con the DB connection
 	 */
 	// Inserting into the table using a prepared statement
 	public static void insertWritingGroup(Scanner in,Connection con) {
@@ -552,13 +635,8 @@ public class DBLibrary {
 			class inputHelper {
 				public inputHelper(int index, String subject) {
 					while(true) {
-						try {
-							acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
-							break;
-						} catch(SQLException e) {
-							System.out.println("Used wrong index");
-							continue;
-						}
+						acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
+						break;
 					}
 				}
 				public inputHelper(int index, String subject,boolean unique) {
@@ -567,7 +645,7 @@ public class DBLibrary {
 						try {
 							String data = acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
 							if(unique) {
-								if(!existsInColumn(con, "WritingGroup", "GroupName",data)) {
+								if(existsInColumn(con, "WritingGroup", "GroupName",data)) {
 									System.out.println("Group Already in the System.");
 									continue;
 								}
@@ -624,6 +702,13 @@ public class DBLibrary {
 		
 	}
 	
+	/**
+	 * Insert publishers.
+	 *
+	 * @param in the input stream we are taking user input from
+	 * @param con the DB connection we are inserting into
+	 * @return the Returns the name of the publisher added.
+	 */
 	public static String insertPublishers(Scanner in,Connection con) {
 		
 		//This is the skeleton of our statement the ?'s are what we are using as a placeholder to put variables into it so sql can optimize.
@@ -652,13 +737,8 @@ public class DBLibrary {
 			public String publisher;
 			public inputHelper(int index, String subject) {
 				while(true) {
-					try {
-						this.publisher = acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
-						break;
-					} catch(SQLException e) {
-						System.out.println("Used wrong index");
-						continue;
-					}
+					this.publisher = acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
+					break;
 				}
 			}
 			public inputHelper(int index, String subject,boolean unique) {
@@ -667,7 +747,7 @@ public class DBLibrary {
 					try {
 						String data = acceptStringInput(metadata.get(index-1).z,index, subject, prepstate,in);
 						if(unique) {
-							if(!existsInColumn(con, "Publishers", "PublisherName",data)) {
+							if(existsInColumn(con, "Publishers", "PublisherName",data)) {
 								System.out.println("PublisherName Already in the System.");
 								continue;
 							}
@@ -717,32 +797,34 @@ public class DBLibrary {
 			return "Error";
 			
 		}
-		String email;
+		
 		while(true) {
+			String email = acceptStringInput(metadata.get(3).z,4,"publisher email",prepstate,in);
 			try {
-				System.out.println("Please enter the publisher email.");
+				
 				//If the next line throws an error we don't get to the break and we repeat the loop through the catch
 				//If the parse goes through fine we break the loop.
-				publisherPhone = in.nextLine();
-				if(publisherPhone.matches("^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$")) {
+				
+				if(email.matches("^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$")) {
 				}
 				else
 				{
 					System.out.println("Please enter a valid email");
 					continue;
 				}
+				
 				break;
 			
 			}catch (NumberFormatException e) {
 				System.out.println("You entered a non valid email\n");
+				continue;
 			}
 		}
-		new inputHelper(4,"publisher email");
+		
 		//We make sure to execute the statment at the end.
 		//This can error if we have problems with our data but it likely would have happened earlier,
 		//Will error if uniqueness constraints are broken.
 		try {
-			
 			prepstate.executeUpdate();
 			
 		} catch (SQLException e) {
@@ -752,6 +834,14 @@ public class DBLibrary {
 		return publisher;
 		
 	}
+	
+	/**
+	 * Creates a new publisher and take an old publisher, the new publisher than takes over all the old publishers current books
+	 * We leave the old publisher alone
+	 *
+	 * @param in the input stream we are taking user input from
+	 * @param con the DB connection we are inserting into
+	 */
 	public static void usurpPublisher(Connection con, Scanner in) {
 		String pub = insertPublishers(in,con);
 		
@@ -759,11 +849,13 @@ public class DBLibrary {
 		try {
 			PreparedStatement prep = con.prepareStatement(sql);
 			prep.setString(1, pub);
-			PreparedStatement tempstate = con.prepareStatement("SELECT publisherName from Books");
+			PreparedStatement tempstate = con.prepareStatement("SELECT publisherName from Publishers");
 			ArrayList<Triple<String,String,Integer>> metadata = getMetaTriples(tempstate.executeQuery());
 			while(true) {
-				String oldPub = acceptStringInput(2,metadata.get(0).z,"Publisher Name",prep,in);
-				if(!existsInColumn(con, "Publisher", "publisherName", oldPub)) {
+				System.out.println("Please enter the old publisher that "+pub+" will take over.");
+				
+				String oldPub = acceptStringInput(metadata.get(0).z,2,"Publisher Name",prep,in);
+				if(!existsInColumn(con, "Publishers", "publisherName", oldPub)) {
 					continue;
 				}
 				prep.executeUpdate();
