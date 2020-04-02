@@ -181,7 +181,7 @@ public class ProjectMain {
 
 			}catch(SQLException e) {
 				System.out.println("Invalid credentials please try again.");
-				e.printStackTrace();
+				
 				continue;
 			}
 		}
